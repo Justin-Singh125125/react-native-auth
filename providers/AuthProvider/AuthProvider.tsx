@@ -1,9 +1,11 @@
+import { useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import { useAutoDiscovery } from 'expo-auth-session';
+import { useAutoDiscovery, refreshAsync, DiscoveryDocument } from 'expo-auth-session';
 import { AuthContext, AuthContextProps } from '../../context';
 import { AuthProviderProps } from './AuthProvider.types';
 import { REFRESH_TOKEN_CACHE_KEY } from './AuthProvider.constants';
 import { useMemo, useState } from 'react';
+import { AUTH_CONFIG } from '../../constants';
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const discovery = useAutoDiscovery(
@@ -11,6 +13,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 
   const [tokenResponse, setTokenResponse] = useState<AuthContextProps['tokenResponse']>(null);
+
+  const autoSignin = async (discovery: DiscoveryDocument) => {
+    try {
+      const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_CACHE_KEY);
+
+      if (!refreshToken) {
+        throw new Error('No refresh token was found in cache');
+      }
+
+      const tokenResponse = await refreshAsync(
+        {
+          ...AUTH_CONFIG,
+          refreshToken,
+        },
+        discovery
+      );
+
+      setTokenResponse(tokenResponse);
+    } catch (e) {}
+  };
 
   const signin: AuthContextProps['signin'] = async (tokenResponse) => {
     if (!tokenResponse.refreshToken) {
@@ -21,6 +43,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     await SecureStore.setItemAsync(REFRESH_TOKEN_CACHE_KEY, tokenResponse.refreshToken);
   };
+
+  useEffect(() => {
+    if (discovery) {
+      autoSignin(discovery);
+    }
+  }, [discovery]);
 
   const value = useMemo<AuthContextProps>(() => {
     return {
