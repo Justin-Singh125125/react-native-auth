@@ -1,9 +1,13 @@
-import { Text } from 'react-native';
+import { Text, ActivityIndicator } from 'react-native';
 import { useAuth } from '../../hooks';
 import { SignIn } from '../SignIn';
 
 export const HomeScreen = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <ActivityIndicator />;
+  }
 
   if (!isAuthenticated) {
     return <SignIn />;

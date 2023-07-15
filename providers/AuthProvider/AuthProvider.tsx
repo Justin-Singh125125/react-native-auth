@@ -13,8 +13,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 
   const [tokenResponse, setTokenResponse] = useState<AuthContextProps['tokenResponse']>(null);
+  const [isLoading, setIsLoading] = useState<AuthContextProps['isLoading']>(true);
 
   const autoSignin = async (discovery: DiscoveryDocument) => {
+    setIsLoading(true);
     try {
       const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_CACHE_KEY);
 
@@ -30,8 +32,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         discovery
       );
 
+      if (!tokenResponse.refreshToken) {
+        throw new Error('No refresh token was returned.');
+      }
+
       setTokenResponse(tokenResponse);
-    } catch (e) {}
+
+      await SecureStore.setItemAsync(REFRESH_TOKEN_CACHE_KEY, tokenResponse.refreshToken);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const signin: AuthContextProps['signin'] = async (tokenResponse) => {
@@ -44,6 +54,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     await SecureStore.setItemAsync(REFRESH_TOKEN_CACHE_KEY, tokenResponse.refreshToken);
   };
 
+  const isAuthenticated = Boolean(tokenResponse?.accessToken);
+
   useEffect(() => {
     if (discovery) {
       autoSignin(discovery);
@@ -52,12 +64,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const value = useMemo<AuthContextProps>(() => {
     return {
-      isAuthenticated: Boolean(tokenResponse?.accessToken),
+      isAuthenticated,
       discovery,
       signin,
       tokenResponse,
+      isLoading,
     };
-  }, [discovery, signin, tokenResponse]);
+  }, [isAuthenticated, discovery, signin, tokenResponse, isLoading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
