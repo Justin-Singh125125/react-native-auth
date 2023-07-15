@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator, Button, ButtonProps } from 'react-native';
+import { View, ActivityIndicator, Button, ButtonProps } from 'react-native';
 import { useAuth } from '../../hooks';
 import { SignIn } from '../SignIn';
 
