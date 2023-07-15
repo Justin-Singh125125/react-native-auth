@@ -9,6 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "axios": "^1.4.0",
     "expo": "^48.0.19",
     "expo-auth-session": "~4.0.3",
     "expo-crypto": "~12.2.1",
