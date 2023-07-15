@@ -1,5 +1,6 @@
 {
   "expo": {
+    "scheme": "react-native-auth",
     "name": "my-app",
     "slug": "my-app",
     "version": "1.0.0",
@@ -11,9 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
