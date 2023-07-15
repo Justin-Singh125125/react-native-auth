@@ -1,10 +1,10 @@
-import { useAuthRequest, exchangeCodeAsync } from 'expo-auth-session';
+import { useAuthRequest, exchangeCodeAsync, TokenResponse } from 'expo-auth-session';
 import { Button, ButtonProps } from 'react-native';
 import { useAuth } from '../../hooks';
 import { AUTH_CONFIG } from '../../constants';
 
 export const SignIn = () => {
-  const { discovery } = useAuth();
+  const { discovery, signin } = useAuth();
 
   const [_, __, promptAsync] = useAuthRequest(AUTH_CONFIG, discovery);
 
@@ -13,18 +13,10 @@ export const SignIn = () => {
 
     if (result.type === 'success' && discovery) {
       const { code } = result.params;
-      console.log(code);
-      const { accessToken, refreshToken } = await exchangeCodeAsync(
-        {
-          clientId: AUTH_CONFIG.clientId,
-          redirectUri: AUTH_CONFIG.redirectUri,
-          code,
-        },
-        discovery
-      );
 
-      console.log('accessToken', accessToken);
-      console.log('refreshToken', refreshToken);
+      const tokenResponse = await exchangeCodeAsync({ ...AUTH_CONFIG, code }, discovery);
+
+      await signin(tokenResponse);
     }
   };
 

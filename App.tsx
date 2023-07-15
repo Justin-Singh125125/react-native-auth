@@ -1,12 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { AuthProvider } from './providers';
-import { SignIn } from './components';
+import { SignIn, HomeScreen } from './components';
 
 export default function App() {
   return (
     <View style={styles.container}>
       <AuthProvider>
-        <SignIn />
+        <HomeScreen />
       </AuthProvider>
     </View>
   );
