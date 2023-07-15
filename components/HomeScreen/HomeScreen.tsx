@@ -1,4 +1,4 @@
-import { Text, ActivityIndicator, Button, ButtonProps } from 'react-native';
+import { View, Text, ActivityIndicator, Button, ButtonProps } from 'react-native';
 import { useAuth } from '../../hooks';
 import { SignIn } from '../SignIn';
 
@@ -18,9 +18,8 @@ export const HomeScreen = () => {
   };
 
   return (
-    <>
-      <Text>Authenticated</Text>
+    <View>
       <Button title="Logout" onPress={handlePress} />
-    </>
+    </View>
   );
 };
