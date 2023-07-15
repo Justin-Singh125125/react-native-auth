@@ -1,9 +1,9 @@
-import { Text, ActivityIndicator } from 'react-native';
+import { Text, ActivityIndicator, Button, ButtonProps } from 'react-native';
 import { useAuth } from '../../hooks';
 import { SignIn } from '../SignIn';
 
 export const HomeScreen = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, signout } = useAuth();
 
   if (isLoading) {
     return <ActivityIndicator />;
@@ -13,5 +13,14 @@ export const HomeScreen = () => {
     return <SignIn />;
   }
 
-  return <Text>Authenticated</Text>;
+  const handlePress: ButtonProps['onPress'] = async () => {
+    await signout();
+  };
+
+  return (
+    <>
+      <Text>Authenticated</Text>
+      <Button title="Logout" onPress={handlePress} />
+    </>
+  );
 };

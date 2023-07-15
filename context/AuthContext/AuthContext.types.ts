@@ -6,4 +6,5 @@ export type AuthContextProps = {
   discovery: DiscoveryDocument | null;
   tokenResponse: TokenResponse | null;
   signin: (tokenResponse: TokenResponse) => Promise<void>;
+  signout: () => Promise<void>;
 };

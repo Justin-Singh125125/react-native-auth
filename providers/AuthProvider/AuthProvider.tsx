@@ -13,6 +13,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 
   const [tokenResponse, setTokenResponse] = useState<AuthContextProps['tokenResponse']>(null);
+
   const [isLoading, setIsLoading] = useState<AuthContextProps['isLoading']>(true);
 
   const autoSignin = async (discovery: DiscoveryDocument) => {
@@ -54,7 +55,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     await SecureStore.setItemAsync(REFRESH_TOKEN_CACHE_KEY, tokenResponse.refreshToken);
   };
 
-  const isAuthenticated = Boolean(tokenResponse?.accessToken);
+  const signout: AuthContextProps['signout'] = async () => {
+    setTokenResponse(null);
+
+    await SecureStore.deleteItemAsync(REFRESH_TOKEN_CACHE_KEY);
+
+    /**
+     * if you have a revoke endpoint. Most providers do not support this
+     */
+
+    // const revokeTokenIfPresent = async (token: string | undefined, discovery: DiscoveryDocument) => {
+    //   if (token) {
+    //     await revokeAsync({ ...AUTH_CONFIG, token }, discovery);
+    //   }
+    // };
+
+    // try {
+    //   await revokeTokenIfPresent(accessToken, discovery);
+    // } finally {
+    //   await revokeTokenIfPresent(refreshToken, discovery);
+    // }
+  };
 
   useEffect(() => {
     if (discovery) {
@@ -64,13 +85,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const value = useMemo<AuthContextProps>(() => {
     return {
-      isAuthenticated,
+      isAuthenticated: Boolean(tokenResponse?.accessToken),
       discovery,
       signin,
       tokenResponse,
       isLoading,
+      signout,
     };
-  }, [isAuthenticated, discovery, signin, tokenResponse, isLoading]);
+  }, [discovery, signin, tokenResponse, isLoading, signout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

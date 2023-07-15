@@ -6,4 +6,5 @@ export const INITIAL_AUTH_CONTEXT: AuthContextProps = {
   discovery: null,
   tokenResponse: null,
   signin: () => Promise.resolve(),
+  signout: () => Promise.resolve(),
 };
