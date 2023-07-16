@@ -16,7 +16,11 @@ export const Items = () => {
     <>
       <Button title="Invalidate" onPress={invalidateQuery} />
       {items.map((item) => {
-        return <Text>{item.name}</Text>;
+        return (
+          <Text style={{ textAlign: 'center' }} key={item.id}>
+            {item.name}
+          </Text>
+        );
       })}
     </>
   );

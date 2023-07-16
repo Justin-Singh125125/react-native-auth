@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import { useAutoDiscovery, refreshAsync, DiscoveryDocument } from 'expo-auth-session';
+import { useAutoDiscovery, refreshAsync, TokenResponse } from 'expo-auth-session';
 import { AuthContext, AuthContextProps } from '../../context';
 import { AuthProviderProps } from './AuthProvider.types';
 import { REFRESH_TOKEN_CACHE_KEY } from './AuthProvider.constants';
 import { useState } from 'react';
 import { AUTH_CONFIG } from '../../constants';
+import { useApiInterceptor } from './hooks';
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const discovery = useAutoDiscovery(
@@ -16,9 +17,49 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const [isLoading, setIsLoading] = useState<AuthContextProps['isLoading']>(true);
 
-  const autoSignin = async (discovery: DiscoveryDocument) => {
+  const refreshTokenConcurrently: AuthContextProps['refreshTokenConcurrently'] = async (
+    tokenResponse
+  ) => {
+    if (!discovery) {
+      throw new Error('No discovery found.');
+    }
+
+    if (!tokenResponse) {
+      throw new Error('No tokens found.');
+    }
+
+    if (TokenResponse.isTokenFresh(tokenResponse)) {
+      return tokenResponse;
+    }
+
+    const originalRefreshToken = tokenResponse.refreshToken;
+
+    const newTokenResponse = await refreshAsync(
+      {
+        ...AUTH_CONFIG,
+        refreshToken: originalRefreshToken,
+      },
+      discovery
+    );
+
+    if (!newTokenResponse.refreshToken) {
+      throw new Error('No refresh token was returned.');
+    }
+
+    setTokenResponse(tokenResponse);
+
+    await SecureStore.setItemAsync(REFRESH_TOKEN_CACHE_KEY, newTokenResponse.refreshToken);
+
+    return newTokenResponse;
+  };
+
+  const autoSignin = async () => {
     setIsLoading(true);
     try {
+      if (!discovery) {
+        throw new Error('No discovery found.');
+      }
+
       const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_CACHE_KEY);
 
       if (!refreshToken) {
@@ -59,42 +100,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setTokenResponse(null);
 
     await SecureStore.deleteItemAsync(REFRESH_TOKEN_CACHE_KEY);
-
-    /**
-     * if you have a revoke endpoint. Most providers do not support this
-     */
-
-    // const revokeTokenIfPresent = async (token: string | undefined, discovery: DiscoveryDocument) => {
-    //   if (token) {
-    //     await revokeAsync({ ...AUTH_CONFIG, token }, discovery);
-    //   }
-    // };
-
-    // try {
-    //   await revokeTokenIfPresent(accessToken, discovery);
-    // } finally {
-    //   await revokeTokenIfPresent(refreshToken, discovery);
-    // }
   };
 
   useEffect(() => {
     if (discovery) {
-      autoSignin(discovery);
+      autoSignin();
     }
   }, [discovery]);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated: Boolean(tokenResponse?.accessToken),
-        discovery,
-        signin,
-        tokenResponse,
-        isLoading,
-        signout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  const value: AuthContextProps = {
+    isAuthenticated: Boolean(tokenResponse?.accessToken),
+    discovery,
+    tokenResponse,
+    isLoading,
+    signin,
+    signout,
+    refreshTokenConcurrently,
+  };
+
+  useApiInterceptor(value);
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

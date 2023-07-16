@@ -7,4 +7,5 @@ export type AuthContextProps = {
   tokenResponse: TokenResponse | null;
   signin: (tokenResponse: TokenResponse) => Promise<void>;
   signout: () => Promise<void>;
+  refreshTokenConcurrently: (tokenResponse: TokenResponse) => Promise<TokenResponse>;
 };
