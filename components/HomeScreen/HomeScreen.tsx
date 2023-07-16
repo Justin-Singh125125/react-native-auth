@@ -21,7 +21,9 @@ export const HomeScreen = () => {
   return (
     <View>
       <Button title="Logout" onPress={handlePress} />
-      <Items />
+      <View style={{ display: 'flex', alignItems: 'center' }}>
+        <Items />
+      </View>
     </View>
   );
 };

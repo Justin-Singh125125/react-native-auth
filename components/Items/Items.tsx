@@ -1,4 +1,4 @@
-import { Text, Button } from 'react-native';
+import { Text, Button, View } from 'react-native';
 import { useItems } from '../../hooks';
 
 export const Items = () => {
@@ -16,11 +16,7 @@ export const Items = () => {
     <>
       <Button title="Invalidate" onPress={invalidateQuery} />
       {items.map((item) => {
-        return (
-          <Text style={{ textAlign: 'center' }} key={item.id}>
-            {item.name}
-          </Text>
-        );
+        return <Text key={item.id}>{item.name}</Text>;
       })}
     </>
   );
