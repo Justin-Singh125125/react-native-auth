@@ -4,7 +4,7 @@ import { useAutoDiscovery, refreshAsync, DiscoveryDocument } from 'expo-auth-ses
 import { AuthContext, AuthContextProps } from '../../context';
 import { AuthProviderProps } from './AuthProvider.types';
 import { REFRESH_TOKEN_CACHE_KEY } from './AuthProvider.constants';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { AUTH_CONFIG } from '../../constants';
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
@@ -83,16 +83,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, [discovery]);
 
-  const value = useMemo<AuthContextProps>(() => {
-    return {
-      isAuthenticated: Boolean(tokenResponse?.accessToken),
-      discovery,
-      signin,
-      tokenResponse,
-      isLoading,
-      signout,
-    };
-  }, [discovery, signin, tokenResponse, isLoading, signout]);
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        isAuthenticated: Boolean(tokenResponse?.accessToken),
+        discovery,
+        signin,
+        tokenResponse,
+        isLoading,
+        signout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
