@@ -1,6 +1,7 @@
 import { View, ActivityIndicator, Button, ButtonProps } from 'react-native';
 import { useAuth } from '../../hooks';
 import { SignIn } from '../SignIn';
+import { Items } from '../Items';
 
 export const HomeScreen = () => {
   const { isAuthenticated, isLoading, signout } = useAuth();
@@ -20,6 +21,7 @@ export const HomeScreen = () => {
   return (
     <View>
       <Button title="Logout" onPress={handlePress} />
+      <Items />
     </View>
   );
 };

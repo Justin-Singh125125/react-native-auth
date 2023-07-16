@@ -6,7 +6,7 @@ class Api {
 
   constructor() {
     this.instance = axios.create({
-      baseURL: 'localhost:8000',
+      baseURL: 'http://localhost:8000',
     });
   }
 
