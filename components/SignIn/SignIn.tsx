@@ -16,8 +16,6 @@ export const SignIn = () => {
 
       const tokenResponse = await exchangeCodeAsync({ ...AUTH_CONFIG, code }, discovery);
 
-      console.log(tokenResponse);
-
       await signin(tokenResponse);
     }
   };

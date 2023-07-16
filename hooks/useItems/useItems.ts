@@ -17,7 +17,6 @@ export const useItems = () => {
         setItems(data);
       })
       .catch((e) => {
-        console.log(e);
         setError(e);
       })
       .finally(() => {
