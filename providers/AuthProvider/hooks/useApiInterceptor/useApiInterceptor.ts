@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
+import { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { api } from '../../../../api';
 import { UseApiInterceptorProps } from './useApiInterceptor.types';
-import { AxiosError } from 'axios';
 
 export const useApiInterceptor = ({
   tokenResponse,
@@ -9,51 +9,48 @@ export const useApiInterceptor = ({
   refreshTokenConcurrently,
 }: UseApiInterceptorProps) => {
   useEffect(() => {
-    api.instance.defaults.headers['Authorization'] = tokenResponse?.accessToken;
+    if (tokenResponse) {
+      api.setDefaultAccessToken(tokenResponse.accessToken);
 
-    const requestInterceptor = api.instance.interceptors.request.use((config) => {
-      config.headers['Authorization'] = tokenResponse?.accessToken;
-      return config;
-    });
+      const requestInterceptor = api.instance.interceptors.request.use((config) => {
+        api.setConfigAccessToken(config, tokenResponse.accessToken);
+        return config;
+      });
 
-    const responseInterceptor = api.instance.interceptors.response.use(
-      (response) => {
-        return response;
-      },
-      async (error: AxiosError) => {
-        const originalRequest = error.config;
-        console.log('hello');
+      const responseInterceptor = api.instance.interceptors.response.use(
+        (response) => {
+          return response;
+        },
+        async (error: AxiosError) => {
+          const originalRequestConfig = error.config;
 
-        console.log(!originalRequest?._retry);
+          if (
+            originalRequestConfig &&
+            error.response?.status === 401 &&
+            !originalRequestConfig._retry
+          ) {
+            originalRequestConfig._retry = true;
 
-        if (originalRequest && error.response?.status === 401 && !originalRequest?._retry) {
-          originalRequest._retry = true;
+            try {
+              const { accessToken } = await refreshTokenConcurrently(tokenResponse);
 
-          try {
-            if (!tokenResponse) {
-              throw new Error('');
+              api.setConfigAccessToken(originalRequestConfig, accessToken);
+
+              return api.instance(originalRequestConfig);
+            } catch (refreshError) {
+              await signout();
+              return Promise.reject(refreshError);
             }
-
-            const { accessToken, tokenType } = await refreshTokenConcurrently(tokenResponse);
-
-            console.log(accessToken);
-
-            originalRequest.headers['Authorization'] = accessToken;
-
-            return api.instance(originalRequest);
-          } catch (refreshError) {
-            signout();
-            return Promise.reject(refreshError);
           }
+
+          return Promise.reject(error);
         }
+      );
 
-        return Promise.reject(error);
-      }
-    );
-
-    return () => {
-      api.instance.interceptors.request.eject(requestInterceptor);
-      api.instance.interceptors.response.eject(responseInterceptor);
-    };
+      return () => {
+        api.instance.interceptors.request.eject(requestInterceptor);
+        api.instance.interceptors.response.eject(responseInterceptor);
+      };
+    }
   }, [tokenResponse, signout]);
 };
