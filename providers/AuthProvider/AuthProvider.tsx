@@ -109,7 +109,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, [discovery]);
 
   const value: AuthContextProps = {
-    isAuthenticated: Boolean(tokenResponse?.accessToken),
+    isAuthenticated: Boolean(tokenResponse),
     discovery,
     tokenResponse,
     isLoading,
