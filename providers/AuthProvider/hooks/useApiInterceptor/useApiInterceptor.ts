@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { AxiosError } from 'axios';
 import { api } from '../../../../api';
-import { UseApiInterceptorProps } from './useApiInterceptor.types';
+import { UseApiInterceptorProps, AxiosErrorWithRetry } from './useApiInterceptor.types';
 
 export const useApiInterceptor = ({
   tokenResponse,
@@ -21,14 +21,10 @@ export const useApiInterceptor = ({
         (response) => {
           return response;
         },
-        async (error: AxiosError) => {
+        async (error: AxiosErrorWithRetry) => {
           const originalRequestConfig = error.config;
 
-          if (
-            originalRequestConfig &&
-            error.response?.status === 401 &&
-            !originalRequestConfig._retry
-          ) {
+          if (error.response?.status === 401 && !originalRequestConfig._retry) {
             originalRequestConfig._retry = true;
 
             try {
